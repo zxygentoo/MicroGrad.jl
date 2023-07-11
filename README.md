@@ -7,7 +7,7 @@ This repo was born from an excise of working through Karpathy's excellent [tutor
 ## Notes
 
 - MicroGrad itself has no third party dependencies.
-- source code organization is the same as the original repo:
+- Code organization is the same as the original repo:
     - `src/engine.jl`: the engine
     - `src/nn.jl`: Neuron, Layer and MLP
     - `test/engine_tests.jl`: a port of the original `test/test_engine.py` using [Zygote](https://github.com/FluxML/Zygote.jl) instead of PyTorch as reference.
@@ -22,7 +22,7 @@ pkg> activate .
 
 ## Run demo notebook
 
-`demo.jl` is roughly a combined port of the `trace_graph.ipynb` and `demo.ipynb` Jupytor notebooks from original repo to showcase solving a simple curve fitting problem using MicroGrad.
+`demo.jl` is roughly a combined port of the `trace_graph.ipynb` and `demo.ipynb` Jupytor notebooks from the original repo to showcase solving a simple curve fitting problem using MicroGrad.
 
 To run the notebook:
 
