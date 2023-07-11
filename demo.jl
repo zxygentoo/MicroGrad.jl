@@ -184,28 +184,6 @@ md"""
 ### Optimization loop
 """
 
-# ╔═╡ ba0b5ec9-bf63-4bfe-a69e-a8e8a7e6dc99
-function train!(model, X, y, loss, epoch)
-	for i in 1:epoch
-		total_loss, acc = loss(model, X, y)
-
-		if i % 10 == 1 || i == 100
-			let info = @sprintf "loss: %.4f accuracy: %.2f%%" total_loss.v acc*100
-				@info "$info (step: $i)"
-			end
-		end
-		
-		zero_grad!(model)
-		backward!(total_loss)
-	
-		learning_rate = 1.0 - 0.9*i/100
-		for p in parameters(model)
-			p.v -= learning_rate * p.grad
-		end	
-	end
-	model
-end
-
 # ╔═╡ 1ceaa76f-8952-4022-a09e-b9dd8c2cdf9f
 md"""
 ### Decision boundary plotter
@@ -222,6 +200,31 @@ function plot_descision_boundary(X, y, model, h=0.25)
 		X[1, :], X[2, :],
 		markercolor=[x == 1 ? :red : :blue for x in y], legends=nothing
 	)
+end
+
+# ╔═╡ ba0b5ec9-bf63-4bfe-a69e-a8e8a7e6dc99
+function train!(model, X, y, loss, epoch)
+	anim = @animate for i in 1:epoch
+		total_loss, acc = loss(model, X, y)
+
+		if i % 10 == 1 || i == 100
+			let info = @sprintf "loss: %.4f accuracy: %.2f%%" total_loss.v acc*100
+				@info "$info (step: $i)"
+			end
+		end
+		
+		zero_grad!(model)
+		backward!(total_loss)
+	
+		learning_rate = 1.0 - 0.9*i/100
+		for p in parameters(model)
+			p.v -= learning_rate * p.grad
+		end
+
+		# create animation
+		plot_descision_boundary(X, y, model)
+	end
+	model, anim
 end
 
 # ╔═╡ d5961aeb-fa32-4523-9c50-be6f6a114f45
@@ -257,9 +260,17 @@ Actually train one:
 begin
 	model = MLP(2, [16, 16, 1])
 	@info "Total number of model parameters: $(length(parameters(model)))"
-	model = train!(model, X, y, loss, epoch)
+	model, anim = train!(model, X, y, loss, epoch)
 	plot_descision_boundary(X, y, model)
 end
+
+# ╔═╡ 6967932a-4ee7-4610-b316-fc9ff9d92691
+md"""
+Animation of how decision boundary changed throughout training:
+"""
+
+# ╔═╡ 7a9518b0-9fb0-4790-9a59-bca942e0c5f6
+gif(anim, fps = 8)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1319,5 +1330,7 @@ version = "1.4.1+0"
 # ╠═f2d4e134-a014-46f7-985c-e15ac21ecfd5
 # ╟─318b4be0-08e5-4c74-9bcb-0eaf8d53fe10
 # ╠═9c3f14b3-c7b8-47d3-bb42-ef9c18a10bba
+# ╟─6967932a-4ee7-4610-b316-fc9ff9d92691
+# ╠═7a9518b0-9fb0-4790-9a59-bca942e0c5f6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

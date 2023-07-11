@@ -34,4 +34,4 @@ julia> using Pluto; Pluto.run()
 
 Pluto should open in browser automatically, then select `demo.jl` using the web interface.
 
-![moon_mlp.svg](images/moon_mlp.svg)
+![moon_mlp.svg](images/moon_mlp.gif)
