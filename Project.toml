@@ -1,0 +1,4 @@
+name = "MicroGrad"
+uuid = "93ec5602-1a36-455a-a427-6f19a0d93426"
+authors = ["zxygentoo <zxy@zxygentoo.com>"]
+version = "0.1.0"
