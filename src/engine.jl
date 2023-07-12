@@ -1,13 +1,15 @@
 import Base
 
+F = Float64
+
 mutable struct Value
-    v::Float64
-    grad::Float64
+    v::F
+    grad::F
     xs::Array{Value}
     op::Symbol
 end
 
-Value(v::Number; grad=0., xs=[], op=:atom) = Value(Float64(v), grad, xs, op)
+Value(v::Number; grad=0., xs=[], op=:atom) = Value(F(v), grad, xs, op)
 
 Base.:+(a::Value, b::Value) = Value(a.v + b.v; xs=[a, b], op=:+)
 Base.:*(a::Value, b::Value) = Value(a.v * b.v; xs=[a, b], op=:*)
@@ -17,13 +19,13 @@ relu(a::Value) = Value(max(0, a.v); xs=[a], op=:relu)
 # avoid writing stuffs like a^(0-2)
 Base.inv(a::Value) = a ^ (0-1)
 
-Base.:+(a::Value, b::Number) = a + Value(Float64(b))
-Base.:*(a::Value, b::Number) = a * Value(Float64(b))
-Base.:^(a::Value, b::Number) = a ^ Value(Float64(b))
+Base.:+(a::Value, b::Number) = a + Value(F(b))
+Base.:*(a::Value, b::Number) = a * Value(F(b))
+Base.:^(a::Value, b::Number) = a ^ Value(F(b))
 
-Base.:+(a::Number, b::Value) = Value(Float64(a)) + b
-Base.:*(a::Number, b::Value) = Value(Float64(a)) * b
-Base.:^(a::Number, b::Value) = Value(Float64(a)) ^ b
+Base.:+(a::Number, b::Value) = Value(F(a)) + b
+Base.:*(a::Number, b::Value) = Value(F(a)) * b
+Base.:^(a::Number, b::Value) = Value(F(a)) ^ b
 
 Base.:+(a::Value) = a * 1
 Base.:-(a::Value) = a * -1

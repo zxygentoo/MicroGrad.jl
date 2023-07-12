@@ -22,6 +22,14 @@ MicroGrad.jl is a Julia port of Andrej Karpathy's [micrograd](https://github.com
 This Pluto.jl notebook is a port of roughly the `trace_graph.ipynb` and `demo.ipynb` Jupyter notebooks combined in original repo to showcase solving a simple curve fitting problem using MicroGrad.
 """
 
+# ╔═╡ 4e25f733-fd85-42f3-b4fe-2138c1bd1d5e
+md"""
+Random seed for reproducibility:
+"""
+
+# ╔═╡ c761d3a0-9500-4507-9fff-afb603f96c65
+seed = 42
+
 # ╔═╡ 1a6d3cf1-d973-4505-814b-ebf0d7198f95
 md"""
 ### Computation graph plotter
@@ -89,16 +97,11 @@ md"""
 """
 
 # ╔═╡ 67fb2f46-c59e-4b2c-8cf5-1aaabe6f9ed9
-function make_moons(n::Int=150;
-                    shuffle::Bool=true,
-                    noise::Real=0.1,
-                    xshift::Real=1.0,
-                    yshift::Real=0.3,
-                    as_table::Bool=true,
-                    eltype::Type{<:AbstractFloat}=Float64,
-                    rng=Random.GLOBAL_RNG)
-
-	runif_ab(rng, n, p, a, b) = (b - a) .* rand(rng, n, p) .+ a
+function make_moons(
+	n::Int=150;
+	shuffle::Bool=true, noise::Real=0.1, xshift::Real=1.0, yshift::Real=0.3
+)
+	runif_ab(n, p, a, b) = (b - a) .* rand(n, p) .+ a
 
 	if n < 1
         throw(ArgumentError(
@@ -112,7 +115,7 @@ function make_moons(n::Int=150;
     n1 = div(n, 2)
     n2 = n - n1
 
-    θs = runif_ab(rng, n, 1, 0, pi)
+    θs = runif_ab(n, 1, 0, pi)
     θs[n2+1:end] .*= -1
 
     X = hcat(cos.(θs), sin.(θs))
@@ -124,7 +127,7 @@ function make_moons(n::Int=150;
     y[1:n1] .= 0
 
     if !iszero(noise)
-        X .+= noise .* randn(rng, n, 2)
+        X .+= noise .* randn(n, 2)
     end
 
 	X', map(x -> 2x - 1, y)
@@ -135,11 +138,12 @@ gen_data = make_moons
 
 # ╔═╡ 56cdf5eb-04f2-4f15-ad50-0482715f957d
 md"""
-Let's see one:
+Plot the dataset:
 """
 
 # ╔═╡ 0137a7d1-32d1-4c38-b620-fbf5e9f71012
 let
+	Random.seed!(seed)
 	X, y = gen_data()
 	scatter(
 		X[1, :], X[2, :],
@@ -232,16 +236,32 @@ md"""
 ### Train model
 """
 
+# ╔═╡ 81b9e7b2-4e50-4055-8d99-7bae89523652
+md"""
+Model building helper:
+"""
+
+# ╔═╡ 585a2d29-8cd0-406c-874a-5fc3421f2007
+build_model() = MLP(2, [16, 16, 1])
+
 # ╔═╡ 887aef3c-bb2b-44f4-9155-f2c5b5620b76
 md"""
-Traning config:
+Traning epochs:
 """
 
 # ╔═╡ d78ce46e-cb1a-4b5d-b715-934f76b65496
-epoch = 100
+epochs = 100
+
+# ╔═╡ 70fc6976-05b6-4ecb-9921-a300dab20ef0
+md"""
+Generate training dataset:
+"""
 
 # ╔═╡ 68c059c3-8a39-49cb-8b17-c4fb34c3840a
-X, y = gen_data()
+X, y = let
+	Random.seed!(seed)
+	gen_data()
+end
 
 # ╔═╡ 60d386a3-617e-4084-90dc-1efd98293da6
 md"""
@@ -249,7 +269,10 @@ Untrained model for comparisoin:
 """
 
 # ╔═╡ f2d4e134-a014-46f7-985c-e15ac21ecfd5
-plot_descision_boundary(X, y, MLP(2, [16, 16, 1]))
+let
+	Random.seed!(seed)
+	plot_descision_boundary(X, y, build_model())
+end
 
 # ╔═╡ 318b4be0-08e5-4c74-9bcb-0eaf8d53fe10
 md"""
@@ -258,9 +281,10 @@ Actually train one:
 
 # ╔═╡ 9c3f14b3-c7b8-47d3-bb42-ef9c18a10bba
 begin
-	model = MLP(2, [16, 16, 1])
+	Random.seed!(seed)
+	model = build_model()
 	@info "Total number of model parameters: $(length(parameters(model)))"
-	model, anim = train!(model, X, y, loss, epoch)
+	model, anim = train!(model, X, y, loss, epochs)
 	plot_descision_boundary(X, y, model)
 end
 
@@ -270,7 +294,7 @@ Animation of how decision boundary changed throughout training:
 """
 
 # ╔═╡ 7a9518b0-9fb0-4790-9a59-bca942e0c5f6
-gif(anim, fps = 8)
+gif(anim, fps=8)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1304,6 +1328,8 @@ version = "1.4.1+0"
 # ╟─23660402-2bc7-4463-92d1-f0b2ca00c612
 # ╠═ca5b5957-e12a-442d-8764-274f96e34c4b
 # ╠═4426397a-49af-40c8-8557-82f3753a8769
+# ╟─4e25f733-fd85-42f3-b4fe-2138c1bd1d5e
+# ╠═c761d3a0-9500-4507-9fff-afb603f96c65
 # ╟─1a6d3cf1-d973-4505-814b-ebf0d7198f95
 # ╠═fe27f0f6-e861-4cc6-93b2-231c36c5850d
 # ╠═4fe26292-4f5e-4ec7-9aaa-5a69e243fa1c
@@ -1323,8 +1349,11 @@ version = "1.4.1+0"
 # ╟─1ceaa76f-8952-4022-a09e-b9dd8c2cdf9f
 # ╠═06a51b65-c41c-433e-ba91-43091824ec84
 # ╟─d5961aeb-fa32-4523-9c50-be6f6a114f45
+# ╟─81b9e7b2-4e50-4055-8d99-7bae89523652
+# ╠═585a2d29-8cd0-406c-874a-5fc3421f2007
 # ╟─887aef3c-bb2b-44f4-9155-f2c5b5620b76
 # ╠═d78ce46e-cb1a-4b5d-b715-934f76b65496
+# ╟─70fc6976-05b6-4ecb-9921-a300dab20ef0
 # ╠═68c059c3-8a39-49cb-8b17-c4fb34c3840a
 # ╟─60d386a3-617e-4084-90dc-1efd98293da6
 # ╠═f2d4e134-a014-46f7-985c-e15ac21ecfd5
