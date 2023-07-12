@@ -22,7 +22,7 @@ pkg> activate .
 
 ## Run demo notebook
 
-`demo.jl` is roughly a combined port of the `trace_graph.ipynb` and `demo.ipynb` Jupytor notebooks from the original repo to showcase solving a simple curve fitting problem using MicroGrad.
+`demo.jl` is roughly a combined port of the `trace_graph.ipynb` and `demo.ipynb` Jupytor notebooks from the original repo to showcase solving a simple classification problem using MicroGrad.
 
 To run the notebook:
 

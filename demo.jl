@@ -19,7 +19,7 @@ md"""
 
 MicroGrad.jl is a Julia port of Andrej Karpathy's [micrograd](https://github.com/karpathy/micrograd/tree/master)
 
-This Pluto.jl notebook is a port of roughly the `trace_graph.ipynb` and `demo.ipynb` Jupyter notebooks combined in original repo to showcase solving a simple curve fitting problem using MicroGrad.
+This Pluto.jl notebook is a port of roughly the `trace_graph.ipynb` and `demo.ipynb` Jupyter notebooks combined in original repo to showcase solving a simple classification problem using MicroGrad.
 """
 
 # ╔═╡ 4e25f733-fd85-42f3-b4fe-2138c1bd1d5e
