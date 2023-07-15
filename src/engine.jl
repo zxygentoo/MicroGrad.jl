@@ -6,10 +6,10 @@ mutable struct Value
     v::F
     grad::F
     xs::Array{Value}
-    op::Symbol
+    op::Union{Nothing, Symbol}
 end
 
-Value(v::Number; grad=0., xs=[], op=:atom) = Value(F(v), grad, xs, op)
+Value(v::Number; grad=0., xs=[], op=nothing) = Value(F(v), grad, xs, op)
 
 Base.:+(a::Value, b::Value) = Value(a.v + b.v; xs=[a, b], op=:+)
 Base.:*(a::Value, b::Value) = Value(a.v * b.v; xs=[a, b], op=:*)
@@ -36,7 +36,7 @@ Base.:\(a::Union{Value, Number}, b::Union{Value, Number}) = a^-1 * b
 
 Base.show(io::IO, v::Value) = print(io, "Value($(v.v), grad=$(v.grad))")
 
-function build_topo(v)
+function build_graph(v)
     topo, visited = [], Set()
     function build(x)
         if !(x in visited)
@@ -74,6 +74,6 @@ end
 
 function backward!(v::Value)
     v.grad = 1.
-    update!.(build_topo(v))
+    update!.(build_graph(v))
     v
 end

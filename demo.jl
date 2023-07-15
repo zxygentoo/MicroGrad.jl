@@ -7,12 +7,6 @@ using InteractiveUtils
 # ╔═╡ ca5b5957-e12a-442d-8764-274f96e34c4b
 using Random, GraphViz, Plots, Printf
 
-# ╔═╡ 4426397a-49af-40c8-8557-82f3753a8769
-begin
-	include("./src/engine.jl")
-	include("./src/nn.jl")
-end
-
 # ╔═╡ 23660402-2bc7-4463-92d1-f0b2ca00c612
 md"""
 # Demo
@@ -21,6 +15,31 @@ MicroGrad.jl is a Julia port of Andrej Karpathy's [micrograd](https://github.com
 
 This Pluto.jl notebook is a port of roughly the `trace_graph.ipynb` and `demo.ipynb` Jupyter notebooks combined in original repo to showcase solving a simple classification problem using MicroGrad.
 """
+
+# ╔═╡ 4c286469-f196-4892-97b4-2496c5796c78
+md"""
+Loading stuffs we need from MicroGrad.jl.
+"""
+
+# ╔═╡ 9e410585-ec3b-400c-aac2-6b1826dc9684
+function load_localmodule(path::String)
+    # https://stackoverflow.com/questions/71440280/using-local-julia-modules-in-pluto
+    name = Symbol(basename(path))
+    m = Module(name)
+    Core.eval(m,
+        Expr(:toplevel,
+             :(eval(x) = $(Expr(:core, :eval))($name, x)),
+             :(include(x) = $(Expr(:top, :include))($name, x)),
+             :(include(mapexpr::Function, x) = $(Expr(:top, :include))(mapexpr, $name, x)),
+             :(include($path))))
+    m
+end
+
+# ╔═╡ 3e9217d6-6061-4fb2-bd87-46dd8131bf4c
+Value, relu, backward!, MLP, parameters, zero_grad! = let
+    m =  load_localmodule("src/MicroGrad.jl").MicroGrad
+    m.Value, m.relu, m.backward!, m.MLP, m.parameters, m.zero_grad!
+end
 
 # ╔═╡ 4e25f733-fd85-42f3-b4fe-2138c1bd1d5e
 md"""
@@ -58,7 +77,7 @@ function digraph(v)
 	dot = []
 	for n in ns
 		push!(dot, "\"$(id(n))\" [label=\"$(n.v)|Δ $(n.grad)\", shape=\"record\"]")
-		if n.op != :atom
+		if !isnothing(n.op)
 			push!(dot, "\"$(id(n))$(n.op)\" [label=\"$(n.op)\"]")
 			push!(dot, "\"$(id(n))$(n.op)\" -> \"$(id(n))\"")
 		end
@@ -271,7 +290,8 @@ Untrained model for comparisoin:
 # ╔═╡ f2d4e134-a014-46f7-985c-e15ac21ecfd5
 let
 	Random.seed!(seed)
-	plot_descision_boundary(X, y, build_model())
+	model = build_model()
+	plot_descision_boundary(X, y, model)
 end
 
 # ╔═╡ 318b4be0-08e5-4c74-9bcb-0eaf8d53fe10
@@ -1327,7 +1347,9 @@ version = "1.4.1+0"
 # ╔═╡ Cell order:
 # ╟─23660402-2bc7-4463-92d1-f0b2ca00c612
 # ╠═ca5b5957-e12a-442d-8764-274f96e34c4b
-# ╠═4426397a-49af-40c8-8557-82f3753a8769
+# ╟─4c286469-f196-4892-97b4-2496c5796c78
+# ╠═9e410585-ec3b-400c-aac2-6b1826dc9684
+# ╠═3e9217d6-6061-4fb2-bd87-46dd8131bf4c
 # ╟─4e25f733-fd85-42f3-b4fe-2138c1bd1d5e
 # ╠═c761d3a0-9500-4507-9fff-afb603f96c65
 # ╟─1a6d3cf1-d973-4505-814b-ebf0d7198f95

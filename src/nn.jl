@@ -1,4 +1,4 @@
-import Base
+include("engine.jl")
 
 struct Neuron
     w
@@ -6,11 +6,12 @@ struct Neuron
     nonlin
 end
 
-Neuron(nin; nonlin=true) =
-    Neuron([Value(rand() * 2 - 1) for _ in 1:nin], Value(0), nonlin)
+init(_) = 2*rand() - 1
+
+Neuron(nin; nonlin=true) = Neuron(Value.(init.(1:nin)), Value(0), nonlin)
 
 function (n::Neuron)(x)
-    act = sum((wi*xi for (wi,xi) in zip(n.w, x))) + n.b
+    act = sum(n.w .* x) + n.b
     n.nonlin ? relu(act) : act
 end
 
@@ -30,24 +31,26 @@ struct MLP
 end
 
 function MLP(nin, nouts)
-    sz = vcat([nin], nouts)
-    MLP([Layer(sz[i], sz[i+1]; nonlin=i!=length(nouts))
-        for i in 1:length(nouts)])
+    sz = [[nin]; nouts]
+    olen = length(nouts)
+    MLP([Layer(sz[i], sz[i+1]; nonlin=i!=olen) for i in 1:olen])
 end
 
 function (m::MLP)(x)
-    map(m.layers) do l x = l(x) end
+    for l in m.layers
+        x = l(x)
+    end
     x
 end
 
-parameters(n::Neuron) = vcat(n.w, n.b)
-
+parameters(n::Neuron) = [n.w; n.b]
 parameters(l::Layer) = [p for n in l.neurons for p in parameters(n)]
-
 parameters(m::MLP) = [p for l in m.layers for p in parameters(l)]
 
 function zero_grad!(m)
-    map(parameters(m)) do p p.grad = 0. end
+    for p in parameters(m)
+        p.grad = 0.
+    end
     m
 end
 
@@ -58,4 +61,4 @@ Base.show(io::IO, l::Layer) =
     print(io, string("Layer of [", join(repr.(l.neurons), ", "), "]"))
 
 Base.show(io::IO, m::MLP) =
-    print(io, string("MLP of [", join(repr.(m.layers), ", "),"]"))
+    print(io, string("MLP of [", join(repr.(m.layers), ", "), "]"))
